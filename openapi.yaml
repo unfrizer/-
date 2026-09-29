@@ -1,0 +1,114 @@
+openapi: 3.1.0
+info:
+  title: ДЕЛО API
+  version: 0.1.0
+  description: API MVP для подбора мер поддержки малому бизнесу.
+servers:
+  - url: https://delo.example.org
+  - url: http://localhost:8000
+paths:
+  /health/live:
+    get:
+      summary: Проверка живости процесса
+      responses:
+        '200':
+          description: API доступен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+  /health/ready:
+    get:
+      summary: Проверка готовности базы данных
+      responses:
+        '200':
+          description: База данных доступна
+  /api/v1/session/max:
+    post:
+      summary: Создаёт или получает demo сессию
+      responses:
+        '200':
+          description: Сессия получена
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [user_id, mode]
+                properties:
+                  user_id: {type: string}
+                  mode: {type: string}
+  /api/v1/profile:
+    get:
+      summary: Возвращает профиль пользователя
+      responses:
+        '200': {description: Профиль или null}
+    put:
+      summary: Создаёт или обновляет профиль
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/Profile'}
+      responses:
+        '200': {description: Профиль сохранён}
+        '422': {description: Ошибка валидации}
+  /api/v1/support-programs:
+    get:
+      summary: Возвращает ранжированный каталог программ
+      responses:
+        '200': {description: Список программ}
+  /api/v1/support-programs/{program_id}:
+    get:
+      summary: Возвращает программу и объяснение соответствия
+      parameters:
+        - in: path
+          name: program_id
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Детали программы}
+        '404': {description: Программа не найдена}
+  /api/v1/plans:
+    get:
+      summary: Возвращает планы пользователя
+      responses:
+        '200': {description: Список планов}
+    post:
+      summary: Создаёт план и чек-лист из программы
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [program_id, deadline]
+              properties:
+                program_id: {type: string}
+                deadline: {type: string, format: date-time}
+      responses:
+        '200': {description: План создан}
+        '404': {description: Программа не найдена}
+        '422': {description: Ошибка валидации}
+  /api/v1/notifications/test:
+    post:
+      summary: Отправляет тестовое уведомление через Mock MAX
+      responses:
+        '200': {description: Уведомление сохранено}
+components:
+  schemas:
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status: {type: string, example: ok}
+    Profile:
+      type: object
+      required: [legal_form, region, employee_count, business_age_months, purpose]
+      properties:
+        legal_form: {type: string, enum: [ip, ooo]}
+        region: {type: string, enum: [spb, other]}
+        industry: {type: string}
+        employee_count: {type: integer, minimum: 0}
+        business_age_months: {type: integer, minimum: 0}
+        purpose: {type: string, enum: [equipment, development, digital]}
+        revenue: {type: integer, minimum: 0, nullable: true}

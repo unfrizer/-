@@ -1,0 +1,39 @@
+schemaVersion: "1.0"
+
+solution:
+  name: "ДЕЛО"
+  teamId: "replace-before-submission"
+
+api:
+  # Replace with the deployed public HTTPS backend URL before automated review.
+  baseUrl: "https://delo.example.org"
+  openapi: "./openapi.yaml"
+  defaultHeaders:
+    Accept: "application/json"
+
+checks:
+  - id: "live-health"
+    name: "Проверка доступности API"
+    description: "Не изменяет данные и подтверждает, что backend отвечает."
+    method: "GET"
+    path: "/health/live"
+    role: "public"
+    expected:
+      statusCodes: [200]
+      contentType: "application/json"
+      requiredFields: ["status"]
+    timeoutMs: 5000
+    repeatable: true
+
+  - id: "demo-session"
+    name: "Получение demo сессии"
+    description: "В development возвращает локального demo пользователя без секретов."
+    method: "POST"
+    path: "/api/v1/session/max"
+    role: "public"
+    expected:
+      statusCodes: [200]
+      contentType: "application/json"
+      requiredFields: ["user_id", "mode"]
+    timeoutMs: 5000
+    repeatable: true
